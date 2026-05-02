@@ -1,0 +1,36 @@
+---
+- name: Установка и настройка веб-сервера
+  hosts: localhost
+  connection: local
+  become: yes
+
+  tasks:
+    - name: Установить nginx
+      apt:
+        name: nginx
+        state: present
+        update_cache: yes
+
+    - name: Запустить nginx
+      service:
+        name: nginx
+        state: started
+        enabled: yes
+
+    - name: Создать свою веб-страницу с правильной кодировкой
+      copy:
+        content: |
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="UTF-8">
+            <title>DevOps в действии!</title>
+          </head>
+          <body>
+            <h1>🚀 Ansible работает!</h1>
+            <p>Этот сайт установлен автоматически через плейбук.</p>
+            <p>Дата: {{ ansible_date_time.date }}</p>
+            <p>Хост: {{ ansible_hostname }}</p>
+          </body>
+          </html>
+        dest: /var/www/html/index.html

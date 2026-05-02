@@ -1,0 +1,87 @@
+---
+- name: Полная установка Docker платформы
+  hosts: localhost
+  connection: local
+  become: yes
+
+  tasks:
+    - name: Удалить старые версии Docker
+      apt:
+        name:
+          - docker
+          - docker-engine
+          - docker.io
+          - containerd
+          - runc
+        state: absent
+
+    - name: Установить зависимости
+      apt:
+        name:
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
+        state: present
+        update_cache: yes
+
+    - name: Добавить официальный GPG ключ Docker
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Добавить репозиторий Docker
+      apt_repository:
+        repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+        state: present
+
+    - name: Установить Docker
+      apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: present
+        update_cache: yes
+
+    - name: Добавить пользователя localadm в группу docker
+      user:
+        name: localadm
+        groups: docker
+        append: yes
+
+    - name: Запустить Docker
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Установка Docker модуля для Python (нужен для управления контейнерами)
+      pip:
+        name: docker
+        state: present
+
+    - name: Установить Portainer (веб-интерфейс для Docker)
+      docker_container:
+        name: portainer
+        image: portainer/portainer-ce:latest
+        restart_policy: always
+        ports:
+          - "8000:8000"
+          - "9443:9443"
+        volumes:
+          - /var/run/docker.sock:/var/run/docker.sock
+          - portainer_data:/data
+      ignore_errors: yes
+
+    - name: Создать тестовый контейнер с nginx
+      docker_container:
+        name: test-nginx
+        image: nginx:latest
+        restart_policy: always
+        ports:
+          - "8080:80"
+        state: started
+      ignore_errors: yes

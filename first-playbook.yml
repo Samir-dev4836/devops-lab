@@ -1,0 +1,28 @@
+---
+- name: Первый плейбук ДевОпс
+  hosts: local
+  become: yes
+
+  tasks:
+    - name: Установить полезные пакеты
+      apt:
+        name:
+          - git
+          - curl
+          - htop
+        state: present
+        update_cache: yes
+
+    - name: Создать директорию для проектов
+      file:
+        path: /opt/devops
+        state: directory
+        mode: '0755'
+
+    - name: Создать информационный файл
+      copy:
+        content: |
+          DevOps Engineer in progress!
+          Ansible installed: {{ ansible_date_time.date }}
+          Hostname: {{ ansible_hostname }}
+        dest: /opt/devops/info.txt
