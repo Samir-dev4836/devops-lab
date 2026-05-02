@@ -1,0 +1,20 @@
+name: Lint Ansible Playbooks
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Ansible
+        run: sudo apt update && sudo apt install ansible -y
+      - name: Syntax check playbooks
+        run: |
+          for playbook in *.yml; do
+            ansible-playbook $playbook --syntax-check
+          done
